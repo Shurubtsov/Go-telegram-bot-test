@@ -1,22 +1,39 @@
 package main
 
 import (
-	"io/ioutil"
+	"flag"
 	"log"
-	"net/http"
+	"telegram-bot/clients/telegram"
 )
 
 func main() {
-	resp, err := http.Get("https://api.vk.com/method/wall.get?access_token=a7975a19a7975a19a7975a19a3a7eb5b2baa797a7975a19c5dc43ae78120dc1c0301231&v=5.131&domain=picturesforlovers&count=5&filter=owner")
-	if err != nil {
-		log.Fatalln(err)
+
+	tgClient := telegram.New(mustBotHost(), mustToken())
+
+	//todo: fetcher = fetcher.New()
+
+	//todo: processor = processor.New()
+
+	//todo: consumer.Start(fetcher, processor)
+}
+
+func mustToken() string {
+	token := flag.String("token-bot-token", "", "token for access to tg bot")
+
+	flag.Parse()
+
+	if *token == "" {
+		log.Fatal("token is empty")
 	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(err)
+	return *token
+}
+
+func mustBotHost() string {
+	host := flag.String("bot-host", "", "get host for tg bot")
+
+	if *host == "" {
+		log.Fatal("our host is empty....try again")
 	}
-	//Convert the body to type string
-	sb := string(body)
-	//log.Printf(sb)
-	log.Printf("%T", sb)
+
+	return *host
 }
