@@ -61,15 +61,21 @@ func (p *Processor) Process(event events.Event) error {
 	}
 }
 
-func (p *Processor) processMessage(event events.Event) {
+func (p *Processor) processMessage(event events.Event) error {
 	meta, err := meta(event)
+	if err != nil {
+		return ers.Wrap("[ERROR] can't process message", err)
+	}
+
 }
 
 func meta(event events.Event) (Meta, error) {
 	res, ok := event.Meta.(Meta)
 	if !ok {
-		return Meta{}, ers.Wrap("can't get meta")
+		return Meta{}, ers.Wrap("can't get meta", ErrUnknownMetaType)
 	}
+
+	return res, nil
 }
 
 func event(upd telegram.Update) events.Event {
