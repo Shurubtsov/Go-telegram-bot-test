@@ -3,18 +3,29 @@ package main
 import (
 	"flag"
 	"log"
-	"telegram-bot/clients/telegram"
+	tgClient "telegram-bot/clients/telegram"
+	event_consumer "telegram-bot/consumer/event-consumer"
+	"telegram-bot/events/telegram"
+	"telegram-bot/storage/files"
+)
+
+const (
+	tgBotHost   = "api.telegram.org"
+	storagePath = "storage"
+	batchSize   = 100
 )
 
 func main() {
+	eventsProcessor := telegram.New(
+		tgClient.New(tgBotHost, mustToken()),
+		files.New(storagePath),
+	)
 
-	tgClient := telegram.New(mustBotHost(), mustToken())
-
-	//todo: fetcher = fetcher.New()
-
-	//todo: processor = processor.New()
-
-	//todo: consumer.Start(fetcher, processor)
+	log.Print("service started")
+	consumer := event_consumer.New(eventsProcessor, eventsProcessor, batchSize)
+	if err := consumer.Start(); err != nil {
+		log.Fatal("service is stopped", err)
+	}
 }
 
 func mustToken() string {
@@ -28,12 +39,12 @@ func mustToken() string {
 	return *token
 }
 
-func mustBotHost() string {
-	host := flag.String("bot-host", "", "get host for tg bot")
+// func mustBotHost() string {
+// 	host := flag.String("bot-host", "", "get host for tg bot")
 
-	if *host == "" {
-		log.Fatal("our host is empty....try again")
-	}
+// 	if *host == "" {
+// 		log.Fatal("our host is empty....try again")
+// 	}
 
-	return *host
-}
+// 	return *host
+// }

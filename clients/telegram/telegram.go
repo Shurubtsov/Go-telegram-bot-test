@@ -22,8 +22,8 @@ const (
 )
 
 // main method for initialize type of Client in "main package"
-func New(host string, token string) Client {
-	return Client{
+func New(host string, token string) *Client {
+	return &Client{
 		host:     host,
 		basePath: newBasePath(token),
 		client:   http.Client{},
