@@ -2,10 +2,13 @@ package storage
 
 import (
 	"crypto/sha1"
+	"errors"
 	"fmt"
 	"io"
 	"telegram-bot/lib/ers"
 )
+
+var ErrNoSavedPages = errors.New("[ERROR] no saved pages")
 
 type Storage interface {
 	Save(p *Page) error
