@@ -79,10 +79,13 @@ func (c *Client) doRequest(method string, query url.Values) (data []byte, err er
 		Path: path.Join(c.basePath, method), // path -> useful package for create functionally urls for requests
 	}
 
-	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, "https:"+u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
+
+	//log.Printf("Request is %v", req)
+
 	req.URL.RawQuery = query.Encode()
 
 	resp, err := c.client.Do(req)
