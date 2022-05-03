@@ -3,16 +3,16 @@
 Тестовый гибкий сервис, напрямую работающий с API. Бот сохраняет скинутые ему ссылки и отправляет из локального хранилища files_storage обратно юзеру.
 ## Настройка
 Для запуска необходимо клонировать репозиторий
-> git clone git@github.com:Shurubtsov/Go-telegram-bot-test.git
+>       git clone git@github.com:Shurubtsov/Go-telegram-bot-test.git
 
 Затем скомпилировать проект
-> go build
+>       go build
 
 После компиляции нужно в корневой папке проекта создать директорию для хранилища
-> mkdir files_storage
+>       mkdir files_storage
 
 Для запуска бота нужно запустить exe файл с флагом tg-bot-token куда нужно передать токен вашего бота
-> ./telegram-bot -tg-bot-token '<Ваш токен>'
+>       ./telegram-bot -tg-bot-token '<Ваш токен>'
 
 Всё, сервис запущен.
 
