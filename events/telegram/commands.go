@@ -1,10 +1,10 @@
 package telegram
 
 import (
+	"errors"
 	"log"
 	"net/url"
 	"strings"
-	"telegram-bot/clients/telegram"
 	"telegram-bot/lib/ers"
 	"telegram-bot/storage"
 )
@@ -20,25 +20,27 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 
 	log.Printf("got new update: [TEXT] '%s' form [USER]'%s'", text, username)
 
-	isAddCmd(text) {
-		// TODO: AddPage()
+	if isAddCmd(text) {
+		return p.savePage(chatID, text, username)
 	}
 
 	switch text {
 	case RndCmd:
+		return p.sendRandom(chatID, username)
 	case HelpCmd:
+		return p.sendHelp(chatID)
 	case StartCmd:
+		return p.sendHello(chatID)
 	default:
+		return p.tg.SendMessage(chatID, msgUnknownCommand)
 	}
 }
 
 func (p *Processor) savePage(chatID int, pageURL string, username string) (err error) {
-	defer func () {err = ers.WrapIfErr("[ERROR] can't do command: save page", err)}
-
-	sendMsg := NewMessageSender(chatID, p.tg.Client)
+	defer func() { err = ers.WrapIfErr("[ERROR] can't do command: save page", err) }()
 
 	page := &storage.Page{
-		URL: pageURL,
+		URL:      pageURL,
 		UserName: username,
 	}
 
@@ -48,24 +50,45 @@ func (p *Processor) savePage(chatID int, pageURL string, username string) (err e
 	}
 
 	if isExists {
-		return sendMsg(msgAlreadyExists)
+		return p.tg.SendMessage(chatID, msgAlreadyExists)
 	}
 
 	if err := p.storage.Save(page); err != nil {
 		return err
 	}
 
-	if err := p.tg.SendMessage(chatID, msgSaved); err != nil {
+	if err := p.tg.SendMessage(chatID, msgSavedPage); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func NewMessageSender(chatID int, tg *telegram.Client) func (string)error {
-	return func(msg string) error {
-		return tg.SendMessage((chatID, msg))
+func (p *Processor) sendRandom(chatID int, username string) (err error) {
+	defer func() { err = ers.WrapIfErr("[ERROR] can't do command: can't send random page", err) }()
+
+	page, err := p.storage.PickRandom(username)
+	if err != nil && !errors.Is(err, storage.ErrNoSavedPages) {
+		return err
 	}
+
+	if errors.Is(err, storage.ErrNoSavedPages) {
+		return p.tg.SendMessage(chatID, msgNoSavedPages)
+	}
+
+	if err := p.tg.SendMessage(chatID, page.URL); err != nil {
+		return err
+	}
+
+	return p.storage.Remove(page)
+}
+
+func (p *Processor) sendHelp(chatID int) error {
+	return p.tg.SendMessage(chatID, msgHelp)
+}
+
+func (p *Processor) sendHello(chatID int) error {
+	return p.tg.SendMessage(chatID, msgHello)
 }
 
 func isAddCmd(text string) bool {
@@ -73,7 +96,7 @@ func isAddCmd(text string) bool {
 }
 
 func isURL(text string) bool {
-	u, err:= url.Parse(text)
+	u, err := url.Parse(text)
 
 	return err == nil && u.Host != ""
 }
